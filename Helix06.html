@@ -908,9 +908,9 @@
 
 			//console.log(camera)
 
-			// camera.rotation.x = 3 * Math.cos(angle);
-			// camera.rotation.z = 1 * Math.sin(angle);
-			// angle += 0.01;
+			camera.position.x = 3000 * Math.cos(angle);
+			camera.position.z = 3000 * Math.sin(angle);
+			angle += 0.01;
 
 			sphere.rotation.set(Math.PI / 2, 0, 0)
 
