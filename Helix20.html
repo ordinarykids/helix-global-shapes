@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<title>Helix - Test 2</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+	<link type="text/css" rel="stylesheet" href="main.css">
+	<style>
+		body {
+			margin: 0;
+			background-color: #000;
+			color: #fff;
+			font-family: Monospace;
+			font-size: 13px;
+			line-height: 24px;
+			overscroll-behavior: none;
+		}
+
+		a {
+			color: #ff0;
+			text-decoration: none;
+		}
+
+		a:hover {
+			text-decoration: underline;
+		}
+
+		button {
+			cursor: pointer;
+			text-transform: uppercase;
+		}
+
+		canvas {
+			display: block;
+		}
+
+		#info {
+			position: absolute;
+			top: 0px;
+			width: 100%;
+			padding: 10px;
+			box-sizing: border-box;
+			text-align: center;
+			-moz-user-select: none;
+			-webkit-user-select: none;
+			-ms-user-select: none;
+			user-select: none;
+			pointer-events: none;
+			z-index: 1; /* TODO Solve this in HTML */
+		}
+
+		a, button, input, select {
+			pointer-events: auto;
+		}
+
+		.dg.ac {
+			-moz-user-select: none;
+			-webkit-user-select: none;
+			-ms-user-select: none;
+			user-select: none;
+			z-index: 2 !important; /* TODO Solve this in HTML */
+		}
+
+		#overlay {
+			position: absolute;
+			z-index: 2;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			
+		}
+
+			#overlay button {
+				background: #ffffff;
+				border: 0;
+				color: #000000;
+				padding: 16px 20px;
+				text-transform: uppercase;
+				cursor: pointer;
+			}
+
+		#notSupported {
+			width: 50%;
+			margin: auto;
+			background-color: #f00;
+			margin-top: 20px;
+			padding: 10px;
+		}
+		a {
+			color: #8ff;
+		}
+
+		#menu {
+			position: absolute;
+			bottom: 20px;
+			width: 100%;
+			text-align: center;
+		}
+
+		.element {
+			width: 40px;
+			height: 40px;
+			background-repeat: no-repeat;
+			/* box-shadow: 0px 0px 12px rgba(0, 255, 255, 0.5); */
+		
+		}
+/* 
+
+		button {
+			color: rgba(127, 255, 255, 0.75);
+			background: transparent;
+			outline: 1px solid rgba(127, 255, 255, 0.75);
+			border: 0px;
+			padding: 5px 10px;
+			cursor: pointer;
+		}
+
+		button:hover {
+			background-color: rgba(0, 255, 255, 0.5);
+		}
+
+		button:active {
+			color: #000000;
+			background-color: rgba(0, 255, 255, 0.75);
+		} */
+
+	</style>
+</head>
+
+<body>
+
+
+	<div id="container"></div>
+	<div id="menu">
+		<button id="table">TABLE</button>
+		<button id="sphere">SPHERE</button>
+		<button id="helix">HELIX</button>
+		<button id="grid">GRID</button>
+	</div>
+
+
+	<!-- Import maps polyfill -->
+	<!-- Remove this when import maps will be widely supported -->
+	<script async src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
+
+	<script type="importmap">
+			{
+				"imports": {
+					"three": "../build/three.module.js",
+					"three/addons/": "./jsm/"
+				}
+			}
+		</script>
+
+	<script type="module">
+			import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.121.1/build/three.module.js';
+			import { TWEEN } from 'https://cdn.jsdelivr.net/npm/three@0.121.1/examples/jsm/libs/tween.module.min.js';
+			import { TrackballControls } from 'https://cdn.jsdelivr.net/npm/three@0.121.1/examples/jsm/controls/TrackballControls.js';
+			import { CSS3DRenderer, CSS3DObject } from 'https://cdn.jsdelivr.net/npm/three@0.121.1/examples/jsm/renderers/CSS3DRenderer.js';
+				import { ConvexGeometry } from 'three/addons/geometries/ConvexGeometry.js';
+			// 
+			const table = [];
+
+				for (var i = 1; i <= 488; i++) {
+					table.push(i);
+				}
+
+
+
+			let camera, scene, renderer, rendererWebGL;
+			let controls;
+
+			const objects = [];
+			const targets = { table: [], sphere: [], helix: [], grid: [] };
+
+			init();
+			animate();
+
+			function init() {
+
+				camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 1, 10000);
+				camera.position.z = 3000;
+
+				scene = new THREE.Scene();
+				scene.background = new THREE.Color(0xF2F2F2);
+		
+
+
+
+
+				let shapes = [];
+
+				shapes[0] = 'https://helix-tw-03.vercel.app/images/s1.png';
+				shapes[1] = 'https://helix-tw-03.vercel.app/images/h1.png';
+				shapes[2] = 'https://helix-tw-03.vercel.app/images/d1.png';
+				shapes[3] = 'https://helix-tw-03.vercel.app/images/t1.png';
+
+				function getShape() {
+					return shapes[Math.floor(Math.random() * shapes.length)];
+				}
+
+
+
+
+
+
+				for (let i = 0; i < table.length; i += 5) {
+
+					const element = document.createElement('div');
+					element.style.backgroundImage = "url(" + getShape() + ")";
+					element.className = 'element';
+					// element.style.backgroundColor = 'rgba(0,127,127,' + (Math.random() * 0.5 + 0.25) + ')';
+
+					const number = document.createElement('div');
+					
+					element.appendChild(number);
+
+					const symbol = document.createElement('div');
+		
+					element.appendChild(symbol);
+
+					const details = document.createElement('div');
+					
+					element.appendChild(details);
+
+					const objectCSS = new CSS3DObject(element);
+					objectCSS.position.x = Math.random() * 4000 - 2000;
+					objectCSS.position.y = Math.random() * 4000 - 2000;
+					objectCSS.position.z = Math.random() * 4000 - 2000;
+					scene.add(objectCSS);
+
+					objects.push(objectCSS);
+
+					//
+
+					const object = new THREE.Object3D();
+					object.position.x = (table[i + 3] * 140) - 1330;
+					object.position.y = - (table[i + 4] * 180) + 990;
+
+					targets.table.push(object);
+
+				}
+
+				// sphere
+
+				const vector = new THREE.Vector3();
+
+				for (let i = 0, l = objects.length; i < l; i++) {
+
+					const phi = Math.acos(- 1 + (2 * i) / l);
+					const theta = Math.sqrt(l * Math.PI) * phi;
+
+					const object = new THREE.Object3D();
+
+					object.position.setFromSphericalCoords(800, phi, theta);
+
+					vector.copy(object.position).multiplyScalar(2);
+
+					object.lookAt(vector);
+
+					targets.sphere.push(object);
+
+				}
+
+				// helix
+
+				for (let i = 0, l = objects.length; i < l; i++) {
+
+					const theta = i * 0.175 + Math.PI;
+					const y = - (i * 8) + 450;
+
+					const object = new THREE.Object3D();
+
+					object.position.setFromCylindricalCoords(900, theta, y);
+
+					vector.x = object.position.x * 2;
+					vector.y = object.position.y;
+					vector.z = object.position.z * 2;
+
+					object.lookAt(vector);
+
+					targets.helix.push(object);
+
+				}
+
+				// grid
+
+				for (let i = 0; i < objects.length; i++) {
+
+					const object = new THREE.Object3D();
+
+					object.position.x = ((i % 5) * 400) - 800;
+					object.position.y = (- (Math.floor(i / 5) % 5) * 400) + 800;
+					object.position.z = (Math.floor(i / 25)) * 1000 - 2000;
+
+					targets.grid.push(object);
+
+				}
+
+				// WebGL
+
+				rendererWebGL = new THREE.WebGLRenderer({ antialias: true });
+				rendererWebGL.setPixelRatio(window.devicePixelRatio);
+				rendererWebGL.setSize(window.innerWidth, window.innerHeight);
+				container.appendChild(rendererWebGL.domElement);
+
+				// CSS
+
+				renderer = new CSS3DRenderer();
+				renderer.setSize(window.innerWidth, window.innerHeight);
+				document.getElementById('container').appendChild(renderer.domElement);
+				renderer.domElement.style.position = 'absolute';
+				renderer.domElement.style.top = 0;
+
+				//
+
+				controls = new TrackballControls(camera, renderer.domElement);
+				controls.minDistance = 500;
+				controls.maxDistance = 6000;
+				controls.addEventListener('change', render);
+
+				const buttonTable = document.getElementById('table');
+				buttonTable.addEventListener('click', function () {
+
+					transform(targets.table, 2000);
+
+				}, false);
+
+				const buttonSphere = document.getElementById('sphere');
+				buttonSphere.addEventListener('click', function () {
+
+					transform(targets.sphere, 2000);
+
+				}, false);
+
+				const buttonHelix = document.getElementById('helix');
+				buttonHelix.addEventListener('click', function () {
+
+					transform(targets.helix, 2000);
+
+				}, false);
+
+				const buttonGrid = document.getElementById('grid');
+				buttonGrid.addEventListener('click', function () {
+
+					transform(targets.grid, 2000);
+
+				}, false);
+
+				transform(targets.table, 2000);
+
+				//
+
+				window.addEventListener('resize', onWindowResize, false);
+
+				//
+
+
+				// convex hull
+
+				const meshMaterial = new THREE.MeshLambertMaterial({
+					//   color: 0x333333,
+					opacity: 0.5,
+					side: THREE.DoubleSide,
+					transparent: false,
+					wireframe: true
+				});
+
+
+
+				// DRAW WIREFRAME FOR EACH VERTEX
+				meshMaterial.color.setHex(0x330000);
+				let meshGeometry = new ConvexGeometry();
+				//let mesh = new THREE.Mesh(meshGeometry, meshMaterial);
+			//	group.add(mesh);
+
+
+
+				const mesh = new THREE.Mesh(new THREE.SphereGeometry(840, 16, 16), new THREE.MeshBasicMaterial({wireframe: true}));
+
+				console.log(mesh);
+
+
+				scene.add(mesh);
+
+			}
+
+			function transform(targets, duration) {
+
+				TWEEN.removeAll();
+
+				for (let i = 0; i < objects.length; i++) {
+
+					const object = objects[i];
+					const target = targets[i];
+
+					new TWEEN.Tween(object.position)
+						.to({ x: target.position.x, y: target.position.y, z: target.position.z }, Math.random() * duration + duration)
+						.easing(TWEEN.Easing.Exponential.InOut)
+						.start();
+
+					new TWEEN.Tween(object.rotation)
+						.to({ x: target.rotation.x, y: target.rotation.y, z: target.rotation.z }, Math.random() * duration + duration)
+						.easing(TWEEN.Easing.Exponential.InOut)
+						.start();
+
+				}
+
+				new TWEEN.Tween(this)
+					.to({}, duration * 2)
+					.onUpdate(render)
+					.start();
+
+			}
+
+			function onWindowResize() {
+
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
+
+				renderer.setSize(window.innerWidth, window.innerHeight);
+
+				render();
+
+			}
+
+			function animate() {
+
+				requestAnimationFrame(animate);
+
+				TWEEN.update();
+
+				controls.update();
+
+			}
+
+			function render() {
+
+				rendererWebGL.render(scene, camera);
+				renderer.render(scene, camera);
+
+			}
+	</script>
+</body>
+
+</html>

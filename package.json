@@ -1,0 +1,22 @@
+{
+  "name": "helix-global-shapes",
+  "version": "1.0.0",
+  "description": "",
+  "main": "Helix09.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ordinarykids/helix-global-shapes.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ordinarykids/helix-global-shapes/issues"
+  },
+  "homepage": "https://github.com/ordinarykids/helix-global-shapes#readme",
+  "dependencies": {
+    "three": "^0.152.2"
+  }
+}

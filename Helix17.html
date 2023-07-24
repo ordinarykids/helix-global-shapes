@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<title>Helix - Test 2</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+	<link type="text/css" rel="stylesheet" href="main.css">
+	<style>
+		a {
+			color: #8ff;
+		}
+
+		#menu {
+			position: absolute;
+			bottom: 20px;
+			width: 100%;
+			text-align: center;
+		}
+
+		.element {
+
+			/* background-image: url(https://helix-tw-03.vercel.app/images/cirlce.png); */
+			background-repeat: no-repeat;
+			width: 120px;
+			height: 160px;
+			/* box-shadow: 0px 0px 12px rgba(0, 255, 255, 0.5); */
+			/* border: 1px solid rgba(127, 255, 255, 0.25); */
+			font-family: Helvetica, sans-serif;
+			text-align: center;
+			line-height: normal;
+			cursor: default;
+		}
+
+		.element:hover {
+			/* box-shadow: 0px 0px 12px rgba(0, 255, 255, 0.75);
+			border: 1px solid rgba(127, 255, 255, 0.75); */
+		}
+
+		.element .number {
+			position: absolute;
+			top: 20px;
+			right: 20px;
+			font-size: 12px;
+			/* color: rgba(127, 255, 255, 0.75); */
+		}
+
+		.element .symbol {
+			position: absolute;
+			top: 40px;
+			left: 0px;
+			right: 0px;
+			font-size: 60px;
+			font-weight: bold;
+
+			/* text-shadow: 0 0 10px rgba(0, 255, 255, 0.95); */
+		}
+
+		.element .details {
+			position: absolute;
+			bottom: 15px;
+			left: 0px;
+			right: 0px;
+			font-size: 12px;
+
+		}
+
+		button {
+			/* color: rgba(127, 255, 255, 0.75); */
+			background: transparent;
+			/* outline: 1px solid rgba(127, 255, 255, 0.75); */
+			border: 0px;
+			padding: 5px 10px;
+			cursor: pointer;
+		}
+
+		button:hover {
+			/* background-color: rgba(0, 255, 255, 0.5); */
+		}
+
+		button:active {
+			color: #000000;
+			/* background-color: rgba(0, 255, 255, 0.75); */
+		}
+	</style>
+</head>
+
+<body>
+
+
+	<div id="container"></div>
+	<div id="container2"></div>
+	<div id="menu" style="display:none">
+
+	</div>
+
+	<!-- Import maps polyfill -->
+	<!-- Remove this when import maps will be widely supported -->
+	<script async src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
+
+	<script type="importmap">
+			{
+				"imports": {
+					"three": "../build/three.module.js",
+					"three/addons/": "./jsm/"
+				}
+			}
+		</script>
+
+	<script type="module">
+
+		import * as THREE from 'three';
+
+		import TWEEN from 'three/addons/libs/tween.module.js';
+		import { TrackballControls } from 'three/addons/controls/TrackballControls.js';
+		import { CSS3DRenderer, CSS3DObject } from 'three/addons/renderers/CSS3DRenderer.js';
+
+
+		var table = [];
+
+		for (var i = 1; i <= 900; i++) {
+			table.push(i);
+		}
+		let camera, scene, scene2, renderer, renderer2;
+		let controls;
+
+		const objects = [];
+		const targets = { table: [], sphere: [], helix: [], grid: [] };
+
+		let shapes = [];
+
+		shapes[0] = 'https://helix-tw-03.vercel.app/images/s1.png';
+		shapes[1] = 'https://helix-tw-03.vercel.app/images/h1.png';
+		shapes[2] = 'https://helix-tw-03.vercel.app/images/d1.png';
+		shapes[3] = 'https://helix-tw-03.vercel.app/images/t1.png';
+
+		function getShape() {
+			return shapes[Math.floor(Math.random() * shapes.length)];
+		}
+
+
+		init();
+		animate();
+
+		function init() {
+
+			camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 1, 10000);
+			camera.position.z = 3000;
+
+			scene = new THREE.Scene();
+			scene.background = new THREE.Color(0xff0000);
+
+			scene2 = new THREE.Scene();
+			scene2.background = new THREE.Color(0xff0000);
+
+
+
+			// const objectWireframe = new THREE.Object3D();
+
+
+
+			// var geometry2 = new THREE.SphereGeometry(1, 10, 10);
+			// var material2 = new THREE.LineBasicMaterial({
+			// 	color: 0xffffff,
+			// 	wireframe: false,
+			// });
+			// var wireframe2 = new THREE.LineSegments(geometry2, material2);
+			// targets.sphere.push(wireframe2);
+
+
+			// table
+
+			for (let i = 0; i < table.length; i += 5) {
+
+				const element = document.createElement('div');
+				//	background - image: url(https://helix-tw-03.vercel.app/images/cirlce.png);
+
+				element.style.backgroundImage = "url(https://helix-tw-03.vercel.app/images/t1.png)";
+				element.className = 'element';
+
+				const objectCSS = new CSS3DObject(element);
+				objectCSS.position.x = Math.random() * 4000 - 2000;
+				objectCSS.position.y = Math.random() * 4000 - 2000;
+				objectCSS.position.z = Math.random() * 4000 - 2000;
+				scene.add(objectCSS);
+
+				objects.push(objectCSS);
+
+				//
+
+				const object = new THREE.Object3D();
+				// object.position.x = (table[i + 3] * 10) - 1330;
+				// object.position.y = - (table[i + 4] * 180) + 990;
+
+				targets.table.push(object);
+
+			}
+
+
+			const vector = new THREE.Vector3();
+
+			for (let i = 0, l = objects.length; i < l; i++) {
+
+				const phi = Math.acos(- 1 + (2 * i) / l);
+				const theta = Math.sqrt(l * Math.PI) * phi;
+
+				const object = new THREE.Object3D();
+
+				object.position.setFromSphericalCoords(800, phi, theta);
+
+				vector.copy(object.position).multiplyScalar(2);
+
+				object.lookAt(vector);
+
+				targets.sphere.push(object);
+
+			}
+
+
+			const geometry = new THREE.SphereGeometry(10, 32, 16);
+			const material = new THREE.MeshBasicMaterial({ color: 0x000000 });
+			const sphere = new THREE.Mesh(geometry, material);
+			targets.sphere.push(sphere);
+
+
+
+
+			for (let i = 0; i < objects.length; i++) {
+
+				const object = new THREE.Object3D();
+
+				object.position.x = ((i % 5) * 400) - 800;
+				object.position.y = (- (Math.floor(i / 5) % 5) * 400) + 800;
+				object.position.z = (Math.floor(i / 25)) * 1000 - 2000;
+
+				targets.grid.push(object);
+
+			}
+
+			//
+
+			renderer = new CSS3DRenderer();
+			renderer.setSize(window.innerWidth, window.innerHeight);
+			document.getElementById('container').appendChild(renderer.domElement);
+
+
+			renderer2 = new CSS3DRenderer();
+			renderer2.setSize(window.innerWidth, window.innerHeight);
+			document.getElementById('container2').appendChild(renderer2.domElement);
+
+			//
+
+			controls = new TrackballControls(camera, renderer.domElement);
+			controls.minDistance = 500;
+			controls.maxDistance = 6000;
+			controls.addEventListener('change', render);
+
+
+			transform(targets.sphere, 2000);
+
+
+			const geometry666 = new THREE.SphereGeometry(100, 100, 100);
+
+			const wireframe666 = new THREE.WireframeGeometry(geometry666);
+
+			const line = new THREE.LineSegments(wireframe666);
+			line.material.depthTest = false;
+			line.material.opacity = 0.25;
+			line.material.transparent = true;
+
+			scene.add(line);
+
+
+
+
+
+			//
+
+			window.addEventListener('resize', onWindowResize);
+
+		}
+
+		function transform(targets, duration) {
+
+			TWEEN.removeAll();
+
+			for (let i = 0; i < objects.length; i++) {
+
+				const object = objects[i];
+				const target = targets[i];
+
+				new TWEEN.Tween(object.position)
+					.to({ x: target.position.x, y: target.position.y, z: target.position.z }, Math.random() * duration + duration)
+					.easing(TWEEN.Easing.Exponential.InOut)
+					.start();
+
+				new TWEEN.Tween(object.rotation)
+					.to({ x: target.rotation.x, y: target.rotation.y, z: target.rotation.z }, Math.random() * duration + duration)
+					.easing(TWEEN.Easing.Exponential.InOut)
+					.start();
+
+			}
+
+			new TWEEN.Tween(this)
+				.to({}, duration * 2)
+				.onUpdate(render)
+				.start();
+
+
+		}
+
+		function onWindowResize() {
+
+			camera.aspect = window.innerWidth / window.innerHeight;
+			camera.updateProjectionMatrix();
+
+			renderer.setSize(window.innerWidth, window.innerHeight);
+
+			render();
+
+		}
+
+		function animate() {
+
+			requestAnimationFrame(animate);
+
+			TWEEN.update();
+
+			controls.update();
+
+		}
+
+		function render() {
+
+			renderer.render(scene, camera);
+
+			renderer2.render(scene2, camera);
+
+		}
+
+	</script>
+</body>
+
+</html>

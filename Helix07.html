@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<title>Helix - Test 6</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+	<!-- <link type="text/css" rel="stylesheet" href="main.css"> -->
+	<script src="https://cdn.tailwindcss.com"></script>
+	<script src="https://d3js.org/d3.v6.js"></script>
+	<script src="https://unpkg.com/topojson-client@3"></script>
+	<script src="https://unpkg.com/d3-array@1"></script>
+	<script src="https://unpkg.com/d3-collection@1"></script>
+	<script src="https://unpkg.com/d3-dispatch@1"></script>
+	<script src="https://unpkg.com/d3-request@1"></script>
+	<script src="https://unpkg.com/d3-timer@1"></script>
+</head>
+
+<body>
+	<div class="headerFake">
+		<img src="images/NAV.svg" alt="" style="width:100%">
+	</div>
+	<div class="grid grid-cols-1">
+		<div class=" ">
+
+		</div>
+	</div>
+	<div class="heroBlock grid grid-cols-2 ">
+		<div class="grid grid-cols-1">
+			<div class=" ">
+				<h1 class="text-6xl black w-3/5 a-center text-center m-auto mt-32 max-w-3xl ">Hardwiring Genomics into the
+					Operating System of
+					Healthcare</h1>
+				<h3 class="text-2xl black w-3/5 a-center text-center m-auto mt-8 max-w-1xl">Helix transforms health
+					organizations
+					to leverage the power of genomics across their enterprise; creating strategic
+					value and fueling future growth.</h3>
+
+			</div>
+		</div>
+		<main class="p-32">
+			<div id="container" class="mt-32"></div>
+		</main>
+
+	</div>
+
+
+
+	<div id="menu" style="display:none">
+		<button id="table">TABLE</button>
+		<button id="sphere">SPHERE</button>
+		<button id="helix">HELIX</button>
+		<button id="grid">GRID</button>
+	</div>
+
+	<!-- Import maps polyfill -->
+	<!-- Remove this when import maps will be widely supported -->
+	<script async src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
+
+	<script type="importmap">
+			{
+				"imports": {
+					"three": "../build/three.module.js",
+					"three/addons/": "./jsm/"
+				}
+			}
+		</script>
+
+	<script type="module">
+		import * as THREE from 'three';
+
+		import { OrbitControls } from "https://unpkg.com/three@0.127.0/examples/jsm/controls/OrbitControls.js";
+
+		var width = 750;
+		var height = 750;
+		var radius = 168,
+			mesh,
+			graticule,
+			scene = new THREE.Scene(),
+			camera = new THREE.PerspectiveCamera(70, width / height, 1, 1000),
+			renderer = new THREE.WebGLRenderer({ alpha: true }),
+			container = document.getElementById('container'),
+			controls;
+
+		scene.background = new THREE.Color("rgb(20,20,20)")
+
+		camera.position.z = 320;
+		renderer.setPixelRatio(window.devicePixelRatio);
+		renderer.setSize(width, height);
+		container.appendChild(renderer.domElement);
+
+		let earthPivot = new THREE.Group();
+
+		d3.json("https://cdn.jsdelivr.net/npm/world-atlas@2/countries-50m.json", function (error, topology) {
+			if (error) throw error;
+			var countries = []
+			var cones = []
+			for (var i = 0; i < topology.objects.countries.geometries.length; i++) {
+				var rgb = [];
+				var newcolor;
+				for (var j = 0; j < 3; j++) {
+					rgb.push(Math.floor(Math.random() * 255));
+					newcolor = 'rgb(' + rgb.join(',') + ')';
+				}
+				var mesh = wireframe(topojson.mesh(topology, topology.objects.countries.geometries[i]), new THREE.LineBasicMaterial({ color: newcolor, linewidth: 5 }))
+				countries.push(mesh);
+				scene.add(mesh);
+
+				mesh.geometry.computeBoundingBox()
+				var center = new THREE.Vector3();
+				mesh.geometry.boundingBox.getCenter(center)
+
+				mesh.add(earthPivot);
+				let height = 5;
+				// height = height ? height : 0;
+				const geometry = new THREE.SphereGeometry(height, 50, 36);
+				const material = new THREE.MeshBasicMaterial({ color: newcolor });
+				const cone = new THREE.Mesh(geometry, material);
+				cone.position.x = center.x;
+				cone.position.y = center.y;
+				cone.position.z = center.z;
+				cones.push(cone);
+				earthPivot.add(cone);
+			}
+
+			controls = new OrbitControls(camera, renderer.domElement);
+			d3.timer(function (t) {
+				for (var i = 0; i < countries.length; i++) {
+					countries[i].rotation.x = Math.sin(t / 21000) * Math.PI / 3 - Math.PI / 2;
+					countries[i].rotation.z = t / 20000;
+					cones[i].rotation.x = Math.sin(t / 21000) * Math.PI / 3 - Math.PI / 2;
+					cones[i].rotation.z = t / 20000;
+				}
+
+				renderer.render(scene, camera)
+			});
+		});
+
+		// Converts a point [longitude, latitude] in degrees to a THREE.Vector3.
+		function vertex(point) {
+			var lambda = point[0] * Math.PI / 180,
+				phi = point[1] * Math.PI / 180,
+				cosPhi = Math.cos(phi);
+			return new THREE.Vector3(
+				radius * cosPhi * Math.cos(lambda),
+				radius * cosPhi * Math.sin(lambda),
+				radius * Math.sin(phi)
+			);
+		}
+
+		// Converts a GeoJSON MultiLineString in spherical coordinates to a THREE.LineSegments.
+		function wireframe(multilinestring, material) {
+			var geometry = new THREE.BufferGeometry;
+			var pointsArray = new Array();
+			multilinestring.coordinates.forEach(function (line) {
+				d3.pairs(line.map(vertex), function (a, b) {
+					pointsArray.push(a, b);
+				});
+			});
+			geometry.setFromPoints(pointsArray);
+			return new THREE.LineSegments(geometry, material);
+		}
+
+		let spherical = new THREE.Spherical();
+		let point = new THREE.Vector3();
+
+		function randomOnSphereEven(radius, PhiNum, thetaNum) {
+			let points = [];
+			let phiSpan = Math.PI / (PhiNum + 1);
+			let thetaSpan = Math.PI * 2 / thetaNum;
+			// create random spherical coordinate
+			for (let i = 1; i < PhiNum + 1; i++) {
+				let phi = phiSpan * i;
+				spherical;
+				for (let j = 0; j < thetaNum; j++) {
+					let theta = thetaSpan * j
+					spherical.set(radius, phi, theta);
+					let point = new THREE.Vector3();
+					point.setFromSpherical(spherical)
+					points.push(point);
+				}
+			}
+			return points;
+		}
+		let points = randomOnSphereEven(500, 4, 5);
+		console.log(points)
+
+
+	</script>
+</body>
+
+</html>

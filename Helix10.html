@@ -1,0 +1,144 @@
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<title>three.js webgl - buffergeometry - compression</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+	<link type="text/css" rel="stylesheet" href="main.css">
+</head>
+
+<body>
+	<div id="info">
+		<a href="https://threejs.org" target="_blank" rel="noopener">three.js</a> - BufferGeometry Compression<br />
+		Octahedron and Quantization encoding methods from Tarek Sherif
+	</div>
+
+	<!-- Import maps polyfill -->
+	<!-- Remove this when import maps will be widely supported -->
+	<script async src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
+
+	<script type="importmap">
+			{
+				"imports": {
+					"three": "../build/three.module.js",
+					"three/addons/": "./jsm/"
+				}
+			}
+		</script>
+
+	<script type="module">
+
+		import * as THREE from 'three';
+
+		import Stats from 'three/addons/libs/stats.module.js';
+		import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+		import * as GeometryCompressionUtils from 'three/addons/utils/GeometryCompressionUtils.js';
+		import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils.js';
+		import { TeapotGeometry } from 'three/addons/geometries/TeapotGeometry.js';
+		import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
+
+
+				// Scene
+				const scene = new THREE.Scene()
+
+
+			// You already had this part
+			var geometry = new THREE.IcosahedronGeometry(10, 1);
+
+
+			console.log(geometry['attributes'].position.array.length);
+
+			// for(position in geometry.attributes.position.array){
+			// 	console.log(position);
+			// }
+
+
+			var material = new THREE.MeshBasicMaterial({
+				color: "blue",
+				wireframe: true
+			});
+
+			var isoMesh = new THREE.Mesh(geometry, material);
+			scene.add(isoMesh);
+
+		//	Add your circles directly to the scene
+			var nodes = [];
+			for (var i = 0, l = geometry['attributes'].position.array.length; i < l; ++i) {
+				nodes.push(new THREE.Mesh(new THREE.CircleGeometry(1, 32), material));
+				scene.add(nodes[nodes.length - 1]);
+			}
+
+			// This is called in render. Get the world positions of the vertices and apply them to the circles.
+			var tempVector = new THREE.Vector3();
+			function updateVertices() {
+				if (typeof isoMesh !== "undefined" && typeof nodes !== "undefined" && nodes.length === isoMesh.geometry.vertices.length) {
+					isoMesh.rotation.x += 0.005;
+					isoMesh.rotation.y += 0.002;
+					for (var i = 0, l = nodes.length; i < l; ++i) {
+						tempVector.copy(isoMesh.geometry.vertices[i]);
+						nodes[i].position.copy(isoMesh.localToWorld(tempVector));
+						nodes[i].lookAt(camera.position);
+					}
+				}
+			} 
+	</script>
+	<script src="http://threejs.org/build/three.js"></script>
+	<!-- <script src="http://127.0.0.1:5505/jsm/controls/TrackballControls.js"></script> -->
+
+	<div id="host"></div>
+	
+	<script  type="module">
+		import { TrackballControls } from 'http://127.0.0.1:5505/jsm/controls/TrackballControls.js';
+	
+	
+	// INITIALIZE
+		var WIDTH = window.innerWidth,
+			HEIGHT = window.innerHeight,
+			FOV = 35,
+			NEAR = 1,
+			FAR = 1000;
+
+		var renderer = new THREE.WebGLRenderer({ antialias: true });
+		renderer.setSize(WIDTH, HEIGHT);
+		document.getElementById('host').appendChild(renderer.domElement);
+
+		// var stats = new Stats();
+		// stats.domElement.style.position = 'absolute';
+		// stats.domElement.style.top = '0';
+		// document.body.appendChild(stats.domElement);
+
+
+		var camera = new THREE.PerspectiveCamera(FOV, WIDTH / HEIGHT, NEAR, FAR);
+		camera.position.z = 50;
+
+		// var trackballControl = new THREE.TrackballControls(camera, renderer.domElement);
+		// trackballControl.rotateSpeed = 5.0; // need to speed it up a little
+
+		var scene = new THREE.Scene();
+
+		var light = new THREE.PointLight(0xffffff, 1, Infinity);
+		camera.add(light);
+
+		scene.add(light);
+
+		function render() {
+			if (typeof updateVertices !== "undefined") {
+				updateVertices();
+			}
+			renderer.render(scene, camera);
+			// stats.update();
+		}
+
+		function animate() {
+			requestAnimationFrame(animate);
+			// trackballControl.update();
+			render();
+		}
+
+		animate();
+	</script>
+</body>
+
+</html>
